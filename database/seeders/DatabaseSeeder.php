@@ -2,24 +2,28 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Kategori;
+use App\Models\Buku;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Buat 5 Kategori tetap sesuai domain perpustakaan
+        $kategoris = [
+            ['kode_kategori' => 'KAT01', 'nama_kategori' => 'Teknologi & Informasi'],
+            ['kode_kategori' => 'KAT02', 'nama_kategori' => 'Sains & Matematika'],
+            ['kode_kategori' => 'KAT03', 'nama_kategori' => 'Ekonomi & Bisnis'],
+            ['kode_kategori' => 'KAT04', 'nama_kategori' => 'Fiksi & Sastra'],
+            ['kode_kategori' => 'KAT05', 'nama_kategori' => 'Sejarah & Budaya'],
+        ];
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        foreach ($kategoris as $kat) {
+            Kategori::create($kat);
+        }
+
+        // Buat 20 Buku menggunakan Factory
+        Buku::factory(20)->create();
     }
 }
