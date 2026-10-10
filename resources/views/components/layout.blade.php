@@ -1,34 +1,69 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'SIPUS-Del' }}</title>
+    <title>SIPUS-Del | Sistem Informasi Perpustakaan IT Del</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
-    <!-- Navbar Del Purple -->
-    <nav class="bg-[#4C1D95] text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center space-x-6">
-                    <span class="font-bold text-xl tracking-wider">SIPUS-Del</span>
-                    <a href="{{ route('kategoris.index') }}" class="hover:bg-[#3B1578] px-3 py-2 rounded-md text-sm font-medium">Kategori</a>
-                    <a href="{{ route('bukus.index') }}" class="hover:bg-[#3B1578] px-3 py-2 rounded-md text-sm font-medium">Buku</a>
+<body class="h-full font-sans antialiased text-gray-900">
+    <div class="min-h-full flex flex-col justify-between">
+        <div>
+            <!-- Navbar / Header dengan Tema Del Purple (#4C1D95) -->
+            <nav class="bg-[#4C1D95] shadow-lg sticky top-0 z-50 transition-all duration-300">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16">
+                        <!-- Logo & Identitas IT Del di Sebelah Kiri -->
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1 shadow-md overflow-hidden">
+                               <img src="{{ asset('images/logo.jpg')}}"alt="Logo IT Del" class="w-full h-full object-contain">
+                            </div>
+                            <div>
+                                <span class="text-white font-bold text-lg tracking-wide">SIPUS-Del</span>
+                                <span class="block text-purple-200 text-xs">Institut Teknologi Del</span>
+                            </div>
+                        </div>
+
+                        <!-- Menu Navigasi dengan Animasi Hover -->
+                        <div class="hidden md:flex items-center space-x-4">
+                            <a href="{{ route('bukus.index') }}" class="text-purple-100 hover:text-white hover:bg-[#3B1578] px-3 py-2 rounded-md text-sm font-medium transition-all duration-200">Daftar Buku</a>
+                            <a href="{{ route('kategoris.index') }}" class="text-purple-100 hover:text-white hover:bg-[#3B1578] px-3 py-2 rounded-md text-sm font-medium transition-all duration-200">Kategori</a>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </nav>
+
+            <!-- Konten Utama dengan Animasi Fade-In -->
+            <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 animate-fade-in">
+                <!-- Notifikasi Pesan Sukses (Jika ada) -->
+                @if(session('success'))
+                    <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-r-md shadow-sm transition-all duration-300">
+                        <div class="flex">
+                            <div class="text-green-700 text-sm font-medium">
+                                {{ session('success') }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{ $slot }}
+            </main>
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        @if(session('success'))
-            <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative shadow" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
-            </div>
-        @endif
-
-        {{ $slot }}
-    </main>
+        <!-- Footer -->
+        <footer class="bg-white border-t border-gray-200 py-4 text-center text-sm text-gray-500">
+            <p>&copy; 2026 <strong>SIPUS-Del</strong> &bull; Institut Teknologi Del. All rights reserved.</p>
+        </footer>
+    </div>
 </body>
 </html>

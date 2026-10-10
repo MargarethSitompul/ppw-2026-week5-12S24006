@@ -3,15 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Buku;
-use App\Models\Kategori;
 use Illuminate\Http\Request;
 
 class BukuController extends Controller
 {
     public function index()
     {
-        // Menerapkan Eager Loading untuk mencegah N+1 problem
-        $bukus = Buku::with('kategori')->latest()->paginate(10);
+        $bukus = Buku::with('kategori')->paginate(10);
         return view('bukus.index', compact('bukus'));
     }
 
