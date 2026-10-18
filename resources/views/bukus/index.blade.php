@@ -24,8 +24,18 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $buku->penulis }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $buku->kategori->nama_kategori ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $buku->stok }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <a href="{{ route('bukus.edit', $buku->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <!-- Tombol Pinjam / Stok Habis -->
+                            @if($buku->stok > 0)
+                                <a href="{{ route('peminjamans.create', ['buku_id' => $buku->id]) }}" class="text-green-600 hover:text-green-900 font-semibold mr-2">Pinjam</a>
+                            @else
+                                <span class="text-gray-400 font-normal mr-2 cursor-not-allowed">Stok Habis</span>
+                            @endif
+
+                            <!-- Tombol Edit -->
+                            <a href="{{ route('bukus.edit', $buku->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</a>
+
+                            <!-- Tombol Hapus -->
                             <form action="{{ route('bukus.destroy', $buku->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
