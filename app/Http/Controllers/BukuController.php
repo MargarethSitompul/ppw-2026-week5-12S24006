@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Buku;
 use Illuminate\Http\Request;
-
+use App\Models\Buku;
+use App\Models\Kategori; 
 class BukuController extends Controller
 {
     public function index()
