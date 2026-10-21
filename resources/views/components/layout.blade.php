@@ -77,5 +77,13 @@
             <p>&copy; 2026 <strong>SIPUS-Del</strong> &bull; Institut Teknologi Del. All rights reserved.</p>
         </footer>
     </div>
+    <div class="flex items-center space-x-3 text-sm text-purple-100">
+    @auth                                                 {{-- tampil kalau sudah login --}}
+        <span>{{ auth()->user()->name }}</span>            {{-- nama pustakawan yang login --}}
+        <form action="{{ route('logout') }}" method="POST">@csrf <button type="submit" class="hover:text-white">Keluar</button></form> {{-- logout wajib POST + @csrf --}}
+    @else                                                 {{-- tampil kalau belum login --}}
+        <a href="{{ route('login') }}" class="hover:text-white">Login</a>
+    @endauth
+</div>
 </body>
 </html>
