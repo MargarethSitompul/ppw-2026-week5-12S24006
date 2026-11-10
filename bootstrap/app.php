@@ -19,3 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();
+
+
+//php artisan key:generate
+//php artisan migrate --seed
+//php artisan storage:link
+//php artisan serve
