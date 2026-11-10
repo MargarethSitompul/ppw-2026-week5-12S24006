@@ -1,0 +1,179 @@
+{
+  "info": {
+    "name": "PPW Week 9 - SIPUS-Del Web Services",
+    "description": "12 skenario pengujian SOAP (bebas pustaka) & REST API v1 (katalog buku, sirkulasi peminjaman, auth Sanctum).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api/v1" },
+    { "key": "web_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "buku_id", "value": "" },
+    { "key": "peminjaman_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - SOAP CheckClearanceStatus (sukses)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "text/xml; charset=utf-8" }],
+        "body": {
+          "mode": "raw",
+          "raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:m=\"http://sipus.del.ac.id/soap/library\">\n  <soap:Body>\n    <m:CheckClearanceStatusRequest>\n      <m:nim_peminjam>12S24001</m:nim_peminjam>\n    </m:CheckClearanceStatusRequest>\n  </soap:Body>\n</soap:Envelope>"
+        },
+        "url": "{{web_url}}/soap/sipus"
+      }
+    },
+    {
+      "name": "02 - SOAP CheckClearanceStatus (NIM kosong -> soap:Fault)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "text/xml; charset=utf-8" }],
+        "body": {
+          "mode": "raw",
+          "raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:m=\"http://sipus.del.ac.id/soap/library\">\n  <soap:Body>\n    <m:CheckClearanceStatusRequest>\n      <m:nim_peminjam></m:nim_peminjam>\n    </m:CheckClearanceStatusRequest>\n  </soap:Body>\n</soap:Envelope>"
+        },
+        "url": "{{web_url}}/soap/sipus"
+      }
+    },
+    {
+      "name": "03 - POST /auth/login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"pustakawan@del.ac.id\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": "{{base_url}}/auth/login"
+      }
+    },
+    {
+      "name": "04 - POST /bukus tanpa token -> 401",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": "{{base_url}}/bukus"
+      }
+    },
+    {
+      "name": "05 - POST /bukus body kosong -> 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": "{{base_url}}/bukus"
+      }
+    },
+    {
+      "name": "06 - POST /bukus valid -> 201 Created + Location",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"9786020000099\",\n  \"judul\": \"Microservices dengan Laravel\",\n  \"penulis\": \"Tim PPW\",\n  \"penerbit\": \"Del Press\",\n  \"tahun_terbit\": 2026,\n  \"kategori_id\": 1,\n  \"stok\": 1,\n  \"sinopsis\": \"Buku uji praktikum Minggu 9\"\n}"
+        },
+        "url": "{{base_url}}/bukus"
+      }
+    },
+    {
+      "name": "07 - PATCH /bukus/{{buku_id}} (partial: stok saja)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"stok\": 5\n}" },
+        "url": "{{base_url}}/bukus/{{buku_id}}"
+      }
+    },
+    {
+      "name": "08 - PUT /bukus/{{buku_id}} (full replace, tanpa sinopsis)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"9786020000099\",\n  \"judul\": \"Microservices dengan Laravel (Edisi 2)\",\n  \"penulis\": \"Tim PPW\",\n  \"penerbit\": \"Del Press\",\n  \"tahun_terbit\": 2026,\n  \"kategori_id\": 1,\n  \"stok\": 5\n}"
+        },
+        "url": "{{base_url}}/bukus/{{buku_id}}"
+      }
+    },
+    {
+      "name": "09 - POST /peminjamans (sukses, 201 + stok berkurang)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buku_id\": {{buku_id}},\n  \"nim_peminjam\": \"12S24099\",\n  \"nama_peminjam\": \"Mahasiswa Uji\",\n  \"durasi_hari\": 7\n}"
+        },
+        "url": "{{base_url}}/peminjamans"
+      }
+    },
+    {
+      "name": "10 - POST /peminjamans NIM & buku sama -> 409 Conflict",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buku_id\": {{buku_id}},\n  \"nim_peminjam\": \"12S24099\",\n  \"nama_peminjam\": \"Mahasiswa Uji\"\n}"
+        },
+        "url": "{{base_url}}/peminjamans"
+      }
+    },
+    {
+      "name": "11 - DELETE /bukus/{{buku_id}} saat masih dipinjam -> 409 Conflict",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{base_url}}/bukus/{{buku_id}}"
+      }
+    },
+    {
+      "name": "12 - PATCH /peminjamans/{{peminjaman_id}}/kembalikan lalu DELETE /bukus/{{buku_id}} -> 204",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{base_url}}/peminjamans/{{peminjaman_id}}/kembalikan"
+      }
+    }
+  ]
+}

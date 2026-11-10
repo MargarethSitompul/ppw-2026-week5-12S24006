@@ -1,58 +1,91 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIPUS-Del — Sistem Informasi Perpustakaan IT Del
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Mata Kuliah:** PPW (12S3101) — Minggu 9: Web Services & REST API
+**Dosen:** Chandro Pardede, S.Kom., M.Sc.
 
-## About Laravel
+## 1. Identitas Mahasiswa
+| Atribut | Isian |
+|---|---|
+| Nama Lengkap | _(isi nama Anda)_ |
+| NIM | 12S24006 |
+| Kelas | _(isi kelas Anda)_ |
+| Program Studi | _(Sistem Informasi / Informatika)_ |
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 2. Analisis Kebutuhan & Kelayakan Web Services
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**Peran Provider vs Consumer pada SIPUS-Del:**
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Fitur | Peran | Alasan |
+|---|---|---|
+| `GET/POST/PUT/PATCH/DELETE /api/v1/bukus` | **Service Provider** | Data buku adalah domain inti SIPUS-Del; diekspos agar aplikasi Mobile/Kiosk mandiri perpustakaan dapat mengaksesnya. |
+| `POST/PATCH /api/v1/peminjamans` | **Service Provider** | Transaksi sirkulasi adalah proses bisnis inti perpustakaan yang harus terkontrol via endpoint RESTful dengan jaminan ACID. |
+| `POST /soap/sipus` | **Service Provider** (legacy) | Melayani Sistem Bebas Pustaka Yudisium lama yang masih berbasis SOAP XML. |
+| `GET /api/v1/bukus/{id}/referensi-eksternal` | **Service Consumer** | SIPUS-Del memanggil OpenLibrary API publik untuk melengkapi metadata buku (jumlah halaman, penerbit, sampul) yang di luar domain data internal. |
 
-## Learning Laravel
+**Komparasi SOAP vs REST untuk studi kasus perpustakaan:**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Aspek | SOAP (`/soap/sipus`) | REST API v1 (`/api/v1/...`) |
+|---|---|---|
+| Target konsumen | Sistem legacy Yudisium (mesin-ke-mesin lama) | Aplikasi Mobile/Kiosk & SPA modern |
+| Format payload | XML (`<soap:Envelope>`), verbose | JSON, ringkas |
+| State | Umumnya stateless, tanpa token modern | Wajib stateless, Bearer Token Sanctum |
+| Kontrak | File WSDL (`soap/sipus.wsdl`) | `docs/openapi-sipus-v1.yaml` (OpenAPI 3.0) |
+| Alasan pemilihan REST untuk Mobile/Kiosk | — | Payload lebih ringan, native JSON di semua platform, HTTP verbs semantik, caching, dan HATEOAS memudahkan navigasi dinamis. |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 3. Tabel Katalog Endpoint Web Services
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### A. SOAP (Legacy — Bebas Pustaka)
+| Method | URI | Proteksi | Deskripsi | Status Respons |
+|---|---|---|---|---|
+| GET | `/soap/sipus.wsdl` | Publik | Kontrak WSDL operasi `CheckClearanceStatus` | 200 |
+| POST | `/soap/sipus` | Publik | Cek jumlah pinjaman aktif NIM; `<soap:Fault>` jika NIM kosong/XML cacat | 200 / 500 (Fault) |
 
-## Agentic Development
+### B. REST API v1 — Katalog Buku
+| Method | URI | Proteksi | Deskripsi | Status Respons |
+|---|---|---|---|---|
+| GET | `/api/v1/bukus` | Publik | Daftar buku: search, filter `kategori_id`/`tersedia`, sort, pagination | 200 |
+| GET | `/api/v1/bukus/{id}` | Publik | Detail buku + kategori + riwayat peminjaman + `_links` | 200 / 404 |
+| GET | `/api/v1/bukus/{id}/referensi-eksternal` | Publik | Konsumsi OpenLibrary API eksternal | 200 / 502 |
+| POST | `/api/v1/bukus` | Bearer Token | Tambah buku baru | 201 (+Location) / 401 / 422 |
+| PUT | `/api/v1/bukus/{id}` | Bearer Token | Ganti seluruh atribut buku | 200 / 404 |
+| PATCH | `/api/v1/bukus/{id}` | Bearer Token | Ubah sebagian atribut buku | 200 / 404 |
+| DELETE | `/api/v1/bukus/{id}` | Bearer Token | Hapus buku (ditolak jika masih dipinjam) | 204 / 409 |
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### C. REST API v1 — Sirkulasi Peminjaman & Auth
+| Method | URI | Proteksi | Deskripsi | Status Respons |
+|---|---|---|---|---|
+| POST | `/api/v1/auth/login` | Publik | Login pustakawan, terbitkan Bearer Token | 200 / 401 |
+| GET | `/api/v1/auth/me` | Bearer Token | Profil pemilik token | 200 / 401 |
+| POST | `/api/v1/auth/logout` | Bearer Token | Cabut (revoke) token aktif | 200 |
+| GET | `/api/v1/peminjamans` | Bearer Token | Daftar peminjaman, filter `status`/`nim` | 200 |
+| POST | `/api/v1/peminjamans` | Bearer Token | Pinjam buku (ACID + `lockForUpdate`) | 201 (+Location) / 409 / 422 |
+| PATCH | `/api/v1/peminjamans/{id}/kembalikan` | Bearer Token | Kembalikan buku (ACID + `lockForUpdate`) | 200 / 409 |
+
+## 4. Panduan Instalasi & Pengujian Cepat
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+composer require laravel/sanctum
+php artisan vendor:publish --tag=sanctum-migrations
+php artisan migrate:fresh --seed
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Akun uji pustakawan (dari seeder): `pustakawan@del.ac.id` / `password123`
 
-## Contributing
+Impor koleksi Postman dari `docs/SIPUS-Del-APIv1.postman_collection.json` beserta variabel `base_url`, `token`, `buku_id`, `peminjaman_id` sesuai panduan di dalamnya. Kontrak lengkap tersedia di `docs/openapi-sipus-v1.yaml` (dapat ditempel ke https://editor.swagger.io).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 5. Galeri Bukti Pengujian (Screenshots)
 
-## Code of Conduct
+> Lampirkan screenshot Postman untuk 7 skenario berikut (sensor token pada tangkapan layar):
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. Uji SOAP XML sukses & `<soap:Fault>`
+2. Login Bearer Token (`POST /auth/login`)
+3. `GET /api/v1/bukus` terpaginasi + `_links` HATEOAS
+4. `POST /api/v1/bukus` → 201 Created + Header `Location`
+5. Bukti perbedaan `PUT` vs `PATCH` pada `/api/v1/bukus/{id}`
+6. Peminjaman sukses (201) & penolakan stok habis (422) / duplikasi (409)
+7. Bukti latihan GitHub REST API (token disensor)
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+_Dilanjutkan dari proyek SIPUS-Del Minggu 6 untuk Modul Praktikum Minggu 9: Web Services & REST API._

@@ -5,8 +5,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\Soap\LibrarySoapController;
 
 Route::get('/', fn () => redirect()->route('bukus.index'));   // halaman depan diarahkan ke daftar buku
+
+// === Minggu 9: Simulasi Ringkas Layanan SOAP (Sistem Bebas Pustaka Yudisium) ===
+Route::get('/soap/sipus.wsdl', [LibrarySoapController::class, 'wsdl']);
+Route::post('/soap/sipus', [LibrarySoapController::class, 'handle']);
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest'); // halaman login, hanya untuk yang belum login
 Route::post('/login', [AuthController::class, 'login'])->middleware('guest');                    // proses login
